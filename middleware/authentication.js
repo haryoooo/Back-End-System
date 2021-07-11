@@ -3,10 +3,10 @@ require("dotenv").config();
 
 function authentication(req, res, next) {
   try {
-    const token = req.headers.token;
+    const token = req.body.token;
 
     if (!token) {
-      res.status(404).send({ message: "Token Not Found" });
+      res.status(404).send({ message: "Token Not Found. You have to login first" });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, dataToken) => {
