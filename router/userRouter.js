@@ -11,14 +11,31 @@ userRouter.post("/user/register", (req, res) => {
   const hashedPassword = hashPassword(password);
   const queryInsert = `INSERT INTO users (uid, username,email,password) value ('${uid}','${username}', '${email}', '${hashedPassword}')`;
   const queryShow = `SELECT * FROM users where email= '${email}' or username='${username}' `;
+  const showAll = `SELECT * FROM users`;
 
   if (validation(username, email, password)) {
-    db.query(queryInsert, (error, results) => {
+    db.query(showAll, (error, results) => {
+      const datas = results[0];
 
       if (error) {
         res.status(500).send(error);
         return;
       }
+
+      if (username === datas.username || email === datas.email) {
+        res.status(404).send({
+          message:
+            "Your email or username that you want is already on database",
+        });
+        return
+      }
+
+      db.query(queryInsert, (error, results) => {
+        if (error) {
+          res.status(500).send(error);
+          return;
+        }
+      });
 
       db.query(queryShow, (error, results) => {
         const data = results[0];
