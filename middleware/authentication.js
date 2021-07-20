@@ -6,7 +6,7 @@ function authentication(req, res, next) {
     const token = req.body.token;
 
     if (!token) {
-      res.status(404).send({ message: "Token Not Found. You have to login first" });
+      res.status(404).send({ message: "Token Not Found" });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, dataToken) => {

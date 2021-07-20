@@ -1,7 +1,9 @@
 
 function validation(username, email, password) {
   let condition;
-  const regex = /^[a-zA-Z0-9!@#\$%\^\&*\)\(+=._-]{6,}$/g;
+  // const regex = /^[a-zA-Z0-9!@#\$%\^\&*\)\(+=._-]{6,}$/g;
+  const regex2 = /^(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/;
+  
   const usersname = username.split("").length;
 
   do {
@@ -30,7 +32,7 @@ function validation(username, email, password) {
         return;
       }
 
-      if (!password.match(regex)) {
+      if (!password.match(regex2)) {
         condition = false;
         console.log("Doesn't match requirement password");
         return;

@@ -45,7 +45,15 @@ class UserController {
             return;
           }
 
-          res.status(200).send({ ...data });
+          const token = jwt.sign(
+            {
+              uid: data.uid,
+              role: data.role,
+            },
+            process.env.JWT_SECRET
+          );
+          // console.log(token)
+          res.status(200).send({ ...data, token });
         });
       });
     } else {
@@ -56,10 +64,12 @@ class UserController {
   }
 
   static userLogin(req, res) {
+    const token = req.headers.token
     const { username, email, password } = req.body;
     const queryShow = `SELECT * FROM users where email= '${email}' or username='${username}' `;
 
     db.query(queryShow, (error, results) => {
+
       if (error) {
         res.status(500).send(error);
         return;
@@ -81,27 +91,18 @@ class UserController {
         return;
       }
 
-      if (checkPassword(password, data.password)) {
-        const token = jwt.sign(
-          {
-            uid: data.uid,
-            role: data.role,
-          },
-          process.env.JWT_SECRET
-        );
+      if(checkPassword(password,data.password)){
         res.status(200).send({ ...data, token });
-      } else {
-        res.status(404).send({ message: "Wrong Password" });
+        return
       }
+
+      res.status(404).send({ message: "Wrong Password" });
+
     });
   }
 
   static userDeactive(req, res) {
     const { token } = req.body;
-
-    if (!token) {
-      res.status(404).send({ message: "Token Not found" });
-    }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       const decodedUID = decoded.uid;
@@ -150,10 +151,6 @@ class UserController {
   static userActivate(req, res) {
     const { token } = req.body;
 
-    if (!token) {
-      res.status(404).send({ message: "Token Not found" });
-    }
-
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       const decodedUID = decoded.uid;
       const updateUser = `UPDATE users SET status=${1} WHERE uid=${decodedUID}`;
@@ -167,6 +164,11 @@ class UserController {
                 WHERE users.uid=${decodedUID}`;
 
       db.query(queryShow, (error, results) => {
+        if(error){
+          res.status(500).send(error)
+          return
+        }
+
         const data = results[0];
 
         if (data.status === 3) {
@@ -175,6 +177,11 @@ class UserController {
         }
 
         db.query(updateUser, (error, results) => {
+          if(error){
+            res.status(500).send(error)
+            return
+          }
+
           db.query(joinStatusActive, (error, results) => {
             if (error) {
               res.status(500).send(error);

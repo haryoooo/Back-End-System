@@ -10,8 +10,8 @@ moviesRouter.get("/movies/get", MoviesController.moviesGetSpecific);
 
 moviesRouter.post("/movies/add", authentication, MoviesController.addMovies);
 
-moviesRouter.get("/movies/edit/:id", authentication, MoviesController.editMoviesSchedule);
+moviesRouter.patch("/movies/edit/:id", authentication, MoviesController.editMoviesSchedule);
 
-moviesRouter.get("/movies/set/:id", authentication, MoviesController.addMoviesSchedule);
+moviesRouter.patch("/movies/set/:id", authentication, MoviesController.addMoviesSchedule);
 
 module.exports = moviesRouter;

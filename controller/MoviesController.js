@@ -1,7 +1,8 @@
 const db = require("../database/index");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
-class MoviesController { 
+class MoviesController {
   static moviesGetAll(req, res) {
     const query = `SELECT 
                   movies.name,
@@ -41,18 +42,18 @@ class MoviesController {
 
     const statusMovie = `SELECT * FROM movies 
                         inner join movie_status
-    			        ON movies.status = movie_status.id
-    				    WHERE movie_status.status=${status}`;
+    			                ON movies.status = movie_status.id
+    				                WHERE movie_status.status=${status}`;
 
     const locationMovie = `SELECT * FROM movies 
                         inner join locations
-    			        ON movies.status = locations.id
-    				    WHERE locations.location=${location}`;
+    			                ON movies.status = locations.id
+    				                WHERE locations.location=${location}`;
 
     const timeMovie = `SELECT * FROM movies 
                         inner join show_times
-    			        ON movies.status = show_times.id
-    				    WHERE show_times.time=${time}`;
+                          ON movies.status = show_times.id
+                            WHERE show_times.time=${time}`;
 
     const joinAll = `SELECT
                       movies.name,
@@ -74,7 +75,7 @@ class MoviesController {
                                     ON schedules.location_id = locations.id
                               JOIN show_times
                                     ON schedules.time_id = show_times.id
-                                         WHERE movie_status.status=${status}
+                                       WHERE movie_status.status=${status}
                                          AND locations.location=${location}
                                          AND show_times.time=${time}`;
 
@@ -138,6 +139,7 @@ class MoviesController {
       release_year,
       duration_min,
       description,
+      token,
     } = req.body;
 
     const showMovies = `SELECT * FROM movies WHERE name="${name}" `;
@@ -146,23 +148,37 @@ class MoviesController {
                             (name,genre,release_date,release_month,release_year,duration_min,description)
                             VALUES ('${name}','${genre}',${release_date},${release_month},${release_year},${duration_min},'${description}')`;
 
-    db.query(addMovies, (error, results) => {
-      if (error) {
-        res.status(500).send(error);
-        return;
-      }
-    });
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
 
-    db.query(showMovies, (error, results) => {
-      const data = results[0];
-
-      if (error) {
-        res.status(500).send(error);
-        return;
+      if (err) {
+        res.status(500).send(err)
       }
 
-      res.status(200).send({ ...data });
+      // if (decoded.role === 2) {
+      //   res
+      //     .status(500)
+      //     .send({ message: "Only admin that could access this feature" });
+      //   return
+      // }
+
+      db.query(addMovies, (error, results) => {
+        if (error) {
+          res.status(500).send(error);
+          return;
+        }
+
+      db.query(showMovies, (error, results) => {
+        const data = results[0];
+
+        if (error) {
+          res.status(500).send(error);
+          return;
+        }
+
+        res.status(200).send({ ...data });
+      });
     });
+  });
   }
 
   static editMoviesSchedule(req, res) {
@@ -198,4 +214,4 @@ class MoviesController {
   }
 }
 
-module.exports = MoviesController
+module.exports = MoviesController;
